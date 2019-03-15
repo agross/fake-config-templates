@@ -13,6 +13,10 @@ nuget Fake.Core.Target
 
 open Fake.Core
 
+Target.create "Template" (fun _ ->
+  Trace.trace "Template target is running"
+)
+
 Target.create "Build" (fun _ ->
   Trace.trace "Build target is running"
 )
@@ -31,7 +35,8 @@ Target.create "Deploy" (fun _ ->
 
 open Fake.Core.TargetOperators
 
-"Build"
+"Template"
+  ==> "Build"
   ==> "Test"
   ==> "Package"
   ==> "Deploy"
