@@ -1,4 +1,10 @@
 open System
+
+#if !FAKE
+  #r "netstandard" // .NET
+  #r "Facades/netstandard" // Mono
+#endif
+
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.DotNet.MsBuild
