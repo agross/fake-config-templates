@@ -37,7 +37,9 @@ Target.create "Template" (fun _ ->
     |> Templates.replaceKeywords replacements
     |> saveFiles removeExtension
 
-  let replacements = []
+  let replacements = [
+    ("the.key", "the value")
+  ]
   replaceInFiles replacements (!! "**/*.template")
   ()
 )
