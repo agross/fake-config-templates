@@ -1,5 +1,11 @@
 This is the template
 
-With a placeholder: the.key
+With placeholders: {{ Foo }}, {{ Bar }} and {{ BazIsOptional }}
+This will not raise an error: {{ DoesNotExist }}
+
+Database:
+  ConnectionString: {{ Db.ConnectionString }}
+  User: {{ Db.User }}
+  Port: {{ Db.PortIsOptional }}
 
 And some more contents

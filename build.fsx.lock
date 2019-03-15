@@ -2,6 +2,7 @@ STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
+    DotLiquid (2.0.298)
     Fake.Core.CommandLineParsing (5.12.4)
       FParsec (>= 1.0.3)
       FSharp.Core (>= 4.3.4)
