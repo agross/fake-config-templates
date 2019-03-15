@@ -1,4 +1,5 @@
 open System
+open Fake.IO
 
 #if !FAKE
   #r "netstandard" // .NET
@@ -7,14 +8,38 @@ open System
 
 #r "paket:
 nuget Fake.Core.Target
+nuget Fake.IO.FileSystem
 //"
 
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
+open Fake.IO
+open Fake.IO.Globbing.Operators
 
 Target.create "Template" (fun _ ->
   Trace.trace "Template target is running"
+
+  let removeExtension template =
+    let file = System.IO.Path.GetFileNameWithoutExtension template
+    Path.combine (Path.getDirectory template) file
+
+  let saveFiles mapFilename =
+    Seq.iter (fun (filename, contents) ->
+      let targetFilename = mapFilename filename
+      Trace.trace (sprintf "Creating %s -> %s" filename targetFilename)
+      File.write false targetFilename (Seq.toList contents)
+    )
+
+  let replaceInFiles replacements files =
+    files
+    |> Templates.load
+    |> Templates.replaceKeywords replacements
+    |> saveFiles removeExtension
+
+  let replacements = []
+  replaceInFiles replacements (!! "**/*.template")
+  ()
 )
 
 Target.create "Build" (fun _ ->
