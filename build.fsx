@@ -8,7 +8,9 @@ open System
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
-nuget DotLiquid
+nuget Fue
+// Fue needs exactly this version.
+nuget HtmlAgilityPack 1.5.2
 //"
 
 #load "./.fake/build.fsx/intellisense.fsx"
@@ -34,42 +36,9 @@ Target.create "Template" (fun _ ->
     File.WriteAllText (targetFilename, contents)
 
   let render model templateFile =
-    // https://github.com/SuaveIO/suave/blob/master/src/Suave.DotLiquid/Library.fs
-    let safe =
-      let o = obj()
-      fun f -> lock o f
-
-    /// Given a type which is an F# record containing seq<_>, list<_>, array<_>, option and
-    /// other records, register the type with DotLiquid so that its fields are accessible
-    let tryRegisterTypeTree =
-      let registered = System.Collections.Generic.Dictionary<_, _>()
-      let rec loop ty =
-        if not (registered.ContainsKey ty) then
-          if Reflection.FSharpType.IsRecord ty then
-            let fields = Reflection.FSharpType.GetRecordFields ty
-            DotLiquid.Template.RegisterSafeType(ty, [| for f in fields -> f.Name |])
-            for f in fields do loop f.PropertyType
-          elif ty.IsGenericType then
-            let t = ty.GetGenericTypeDefinition()
-            if t = typedefof<seq<_>> || t = typedefof<list<_>>  then
-              loop (ty.GetGenericArguments().[0])
-            elif t = typedefof<option<_>> then
-              DotLiquid.Template.RegisterSafeType(ty, [|"Value"|])
-              loop (ty.GetGenericArguments().[0])
-          elif ty.IsArray then
-            loop (ty.GetElementType())
-          registered.[ty] <- true
-      fun ty -> safe (fun () -> loop ty)
-
-    tryRegisterTypeTree (model.GetType ())
-    let view = File.readAsString templateFile
-               |> DotLiquid.Template.Parse
-
-    DotLiquid.Template.NamingConvention <- DotLiquid.NamingConventions.CSharpNamingConvention()
-
-    model
-    |> DotLiquid.Hash.FromAnonymousObject
-    |> view.Render
+    Fue.Data.init
+    |> Fue.Data.add "config" model
+    |> Fue.Compiler.fromFile templateFile
 
   Trace.tracefn "Configuration\n%O" Config
 
