@@ -8,6 +8,11 @@ open System
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
+nuget Microsoft.Extensions.Configuration
+nuget Microsoft.Extensions.Configuration.Yaml
+// Microsoft.Extensions.Configuration.Yaml needs exactly this version.
+nuget YamlDotNet 4.2.1
+nuget Microsoft.Extensions.Configuration.EnvironmentVariables
 nuget Fue
 // Fue needs exactly this version.
 nuget HtmlAgilityPack 1.5.2
@@ -15,13 +20,27 @@ nuget HtmlAgilityPack 1.5.2
 
 #load "./.fake/build.fsx/intellisense.fsx"
 
-#load "./config/local.fsx"
-let Config = Configuration.Default.Config
-
 open System.IO
 open Fake.Core
 open Fake.IO
 open Fake.IO.Globbing.Operators
+
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.Configuration.Yaml
+
+let Config =
+  let builder = ConfigurationBuilder ()
+  builder.AddYamlFile (__SOURCE_DIRECTORY__ + "/config/default.yaml") |> ignore
+
+  let local = __SOURCE_DIRECTORY__ + "/config/local.yaml"
+  if File.exists local then
+    builder.AddYamlFile (local) |> ignore
+  builder.Build()
+
+Config.AsEnumerable()
+|> Seq.map (fun kvp -> sprintf "%s = %s" kvp.Key kvp.Value)
+|> Seq.sort
+|> Seq.iter Trace.trace
 
 Target.create "Template" (fun _ ->
   Trace.trace "Template target is running"

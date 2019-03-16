@@ -1,0 +1,8 @@
+foo: 42
+bar: is a string
+baz:
+  foobar: 23
+  list:
+    - one
+    - two
+    - three
