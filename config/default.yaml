@@ -6,3 +6,4 @@ baz:
     - one
     - two
     - three
+value_that_needs_encoding: <h1>Hello World</h1>

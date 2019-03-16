@@ -1,4 +1,10 @@
-open System
+open Fake.Core
+open Fake.IO
+open Fake.IO.Globbing.Operators
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.Configuration.Yaml
+open System.IO
+open System.Linq
 
 #if !FAKE
   #r "netstandard" // .NET
@@ -9,24 +15,15 @@ open System
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
 nuget Microsoft.Extensions.Configuration
+nuget Microsoft.Extensions.Configuration.Binder
 nuget Microsoft.Extensions.Configuration.Yaml
 // Microsoft.Extensions.Configuration.Yaml needs exactly this version.
 nuget YamlDotNet 4.2.1
 nuget Microsoft.Extensions.Configuration.EnvironmentVariables
-nuget Fue
-// Fue needs exactly this version.
-nuget HtmlAgilityPack 1.5.2
+nuget FuManchu
 //"
 
 #load "./.fake/build.fsx/intellisense.fsx"
-
-open System.IO
-open Fake.Core
-open Fake.IO
-open Fake.IO.Globbing.Operators
-
-open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.Configuration.Yaml
 
 let Config =
   let builder = ConfigurationBuilder ()
@@ -49,22 +46,39 @@ Target.create "Template" (fun _ ->
     let file = Path.GetFileNameWithoutExtension template
     Path.combine (Path.getDirectory template) file
 
-  let saveFile mapFilename filename contents =
-    let targetFilename = mapFilename filename
-    Trace.trace (sprintf "Creating %s -> %s" filename targetFilename)
-    File.WriteAllText (targetFilename, contents)
-
   let render (config:IConfigurationRoot) templateFile =
-    config.AsEnumerable()
-    |> Seq.fold (fun state kvp -> Fue.Data.add kvp.Key kvp.Value state) Fue.Data.init
-    |> Fue.Compiler.fromFile templateFile
+    let template = File.readAsString templateFile
 
-  Trace.tracefn "Configuration\n%O" Config
+    FuManchu.Handlebars.RegisterHelper ("list", (fun o ->
+      let key = string o.Data
+
+      try
+        config.AsEnumerable()
+        |> Seq.find (fun kvp -> kvp.Key = key)
+        |> ignore
+
+        let result:string list = config.GetValue (key)
+        System.String.Join (",", result)
+      with
+      | :? System.Collections.Generic.KeyNotFoundException ->
+        failwithf "Key %s not found while rendering %s" key templateFile
+      )
+    )
+
+    let data =
+      config.AsEnumerable()
+           .ToDictionary((fun kvp -> kvp.Key), (fun kvp -> kvp.Value))
+
+    FuManchu.Handlebars.CompileAndRun (templateFile, template, data)
 
   !! "**/*.template"
   |> Seq.iter (fun f ->
+    let targetFilename = removeExtension f
+
+    Trace.tracefn "Creating %s -> %s" f targetFilename
+
     render Config f
-    |> saveFile removeExtension f
+    |> File.writeString false targetFilename
   )
 )
 

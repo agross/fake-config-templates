@@ -1,9 +1,11 @@
-bar = {{{bar}}}
-baz = {{{baz}}}
-baz:foobar = {{{baz:foobar}}}
-baz:list = {{{baz:list}}}
-baz:list:0 = {{{baz:list:0}}}
-baz:list:1 = {{{baz:list:1}}}
-baz:list:2 = {{{baz:list:2}}}
-foo = {{{foo}}}
-new_item = {{{new_item}}}
+foo = {{foo}}
+bar = {{bar}}
+baz:foobar = {{"baz:foobar"}}
+baz:list {{#list "baz:list" }}
+would have been so nice if it worked
+{{/list}}
+
+encoded with 2 curly braces: {{value_that_needs_encoding}}
+raw with 3 curly braces: {{{value_that_needs_encoding}}}
+
+{{will not be rendered because the key does not exist}}
