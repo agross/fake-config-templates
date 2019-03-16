@@ -54,10 +54,15 @@ Target.create "Template" (fun _ ->
     Trace.trace (sprintf "Creating %s -> %s" filename targetFilename)
     File.WriteAllText (targetFilename, contents)
 
-  let render model templateFile =
-    Fue.Data.init
-    |> Fue.Data.add "config" model
-    |> Fue.Compiler.fromFile templateFile
+  let render (config:IConfigurationRoot) templateFile =
+    let mutable init = Fue.Data.init
+
+    config.AsEnumerable()
+    |> Seq.iter (fun kvp ->
+      init <- Fue.Data.add kvp.Key kvp.Value init
+    )
+
+    Fue.Compiler.fromFile templateFile init
 
   Trace.tracefn "Configuration\n%O" Config
 
