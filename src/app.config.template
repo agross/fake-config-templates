@@ -1,11 +1,14 @@
 This is the template
 
-With placeholders: {{{ config.Foo }}}, {{{ config.Bar }}} and {{{ config.BazIsOptional.Value }}}
-This will not raise an error: {{{ config.DoesNotExist }}}
+With placeholders: {{Foo}}, {{Bar}} and {{BazIsOptional.Value}}
+This will not raise an error: {{DoesNotExist}}
 
 Database:
-  ConnectionString: {{{ config.Db.ConnectionString }}}
-  User: {{{ config.Db.User }}}
-  Port: {{{ config.Db.PortIsOptional.Value }}}
+  ConnectionString: {{Db.ConnectionString}}
+  User: {{Db.User}}
+  Port: {{Db.PortIsOptional.Value}}
+
+List: {{#each List}}
+  - {{@index}}: {{this}}{{/each}}
 
 And some more contents

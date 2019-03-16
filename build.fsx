@@ -12,15 +12,14 @@ open Fake.IO.Globbing.Operators
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
-nuget Fue
-// Fue needs exactly this version.
-nuget HtmlAgilityPack 1.5.2
+nuget FuManchu
 //"
 
 #load "./.fake/build.fsx/intellisense.fsx"
 
 #load "./config.fsx"
 let Config = Config.Config
+Trace.tracefn "Configuration:\n%A" Config
 
 Target.create "Template" (fun _ ->
   Trace.trace "Template target is running"
@@ -29,22 +28,19 @@ Target.create "Template" (fun _ ->
     let file = Path.GetFileNameWithoutExtension template
     Path.combine (Path.getDirectory template) file
 
-  let saveFile mapFilename filename contents =
-    let targetFilename = mapFilename filename
-    Trace.trace (sprintf "Creating %s -> %s" filename targetFilename)
-    File.WriteAllText (targetFilename, contents)
+  let render config templateFile =
+    let template = File.readAsString templateFile
 
-  let render model templateFile =
-    Fue.Data.init
-    |> Fue.Data.add "config" model
-    |> Fue.Compiler.fromFile templateFile
-
-  Trace.tracefn "Configuration\n%O" Config
+    FuManchu.Handlebars.CompileAndRun (templateFile, template, config)
 
   !! "**/*.template"
   |> Seq.iter (fun f ->
+    let targetFilename = removeExtension f
+
+    Trace.tracefn "Creating %s -> %s" f targetFilename
+
     render Config f
-    |> saveFile removeExtension f
+    |> File.writeString false targetFilename
   )
 )
 

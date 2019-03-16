@@ -12,6 +12,7 @@ type Config =
     Foo: string
     Bar: int
     BazIsOptional: int option
+    List: string list
     Db: DatabaseConfig
   }
 
@@ -20,6 +21,7 @@ let DefaultConfig =
     Foo = "foo is foo"
     Bar = 42
     BazIsOptional = None
+    List = ["One"; "Two"; "Three"]
     Db = {
       ConnectionString = "blah"
       User = "sa"
