@@ -46,28 +46,36 @@ Target.create "Template" (fun _ ->
     let file = Path.GetFileNameWithoutExtension template
     Path.combine (Path.getDirectory template) file
 
+  // FuManchu does not handle keys separated by ":" well,
+  // which Microsoft.Extensions.Configuration uses,so we
+  // transform those characters to ".".
+  let dottify (key:string) =
+    key.Replace (":", ".")
+
+  let undottify (key:string) =
+    key.Replace (".", ":")
+
   let render (config:IConfigurationRoot) templateFile =
     let template = File.readAsString templateFile
 
-    FuManchu.Handlebars.RegisterHelper ("list", (fun o ->
-      let key = string o.Data
+    FuManchu.Handlebars.RegisterHelper ("ensure", (fun o ->
+      let key = undottify (string o.Data)
 
       try
         config.AsEnumerable()
         |> Seq.find (fun kvp -> kvp.Key = key)
         |> ignore
 
-        let result:string list = config.GetValue (key)
-        System.String.Join (",", result)
+        config.GetValue (key)
       with
       | :? System.Collections.Generic.KeyNotFoundException ->
-        failwithf "Key %s not found while rendering %s" key templateFile
+        failwithf """Configuration key "%s" not found while rendering %s""" key templateFile
       )
     )
 
     let data =
       config.AsEnumerable()
-           .ToDictionary((fun kvp -> kvp.Key), (fun kvp -> kvp.Value))
+           .ToDictionary((fun kvp -> dottify kvp.Key), (fun kvp -> kvp.Value))
 
     FuManchu.Handlebars.CompileAndRun (templateFile, template, data)
 

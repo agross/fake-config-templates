@@ -1,3 +1,4 @@
 # Use this file to create new keys or overwrite existing ones.
-new_item: haha
+new:
+  item: haha
 foo: not 42

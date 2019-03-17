@@ -1,11 +1,27 @@
 foo = {{foo}}
 bar = {{bar}}
-baz:foobar = {{"baz:foobar"}}
-baz:list {{#list "baz:list" }}
+baz:foobar dotted  = {{baz.foobar}}
+baz:foobar ensured = {{ensure "baz.foobar"}}
+baz:list {{#each baz.list }}
+{{this}}
 would have been so nice if it worked
-{{/list}}
+{{/each}}
 
 encoded with 2 curly braces: {{value_that_needs_encoding}}
 raw with 3 curly braces: {{{value_that_needs_encoding}}}
 
+{{"will be rendered as string"}}
 {{will not be rendered because the key does not exist}}
+
+{{"put ensure in front: raises error because the key does not exist"}}
+
+{{#if new.item}}
+  new.item is available: {{new.item}}
+{{else}}
+  new.item is not available
+{{/if}}
+
+All configuration keys with their string representations:
+
+{{#each this}}Index {{@index}}: {{@key}} = {{this}}
+{{/each}}
