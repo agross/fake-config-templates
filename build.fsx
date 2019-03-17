@@ -1,4 +1,8 @@
 open System
+open System.IO
+open Fake.Core
+open Fake.IO
+open Fake.IO.Globbing.Operators
 
 #if !FAKE
   #r "netstandard" // .NET
@@ -15,13 +19,8 @@ nuget HtmlAgilityPack 1.5.2
 
 #load "./.fake/build.fsx/intellisense.fsx"
 
-#load "./config/local.fsx"
-let Config = Configuration.Default.Config
-
-open System.IO
-open Fake.Core
-open Fake.IO
-open Fake.IO.Globbing.Operators
+#load "./config.fsx"
+let Config = Config.Config
 
 Target.create "Template" (fun _ ->
   Trace.trace "Template target is running"
