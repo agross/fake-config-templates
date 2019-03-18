@@ -3,6 +3,7 @@ open System.IO
 open Fake.Core
 open Fake.IO
 open Fake.IO.Globbing.Operators
+open Fake.BuildServer
 
 #if !FAKE
   #r "netstandard" // .NET
@@ -12,6 +13,7 @@ open Fake.IO.Globbing.Operators
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
+nuget Fake.BuildServer.TeamCity
 nuget FuManchu
 //"
 
@@ -20,6 +22,8 @@ nuget FuManchu
 #load "./config.fsx"
 let Config = Config.Config
 Trace.tracefn "Configuration:\n%A" Config
+
+BuildServer.install [TeamCity.Installer]
 
 Target.create "Template" (fun _ ->
   Trace.trace "Template target is running"
@@ -46,6 +50,8 @@ Target.create "Template" (fun _ ->
 
 Target.create "Build" (fun _ ->
   Trace.trace "Build target is running"
+
+  Trace.publish ImportData.BuildArtifact "bin/**/*.dll => dlls.zip"
 )
 
 Target.create "Test" (fun _ ->
